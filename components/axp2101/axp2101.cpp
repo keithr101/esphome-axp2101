@@ -109,60 +109,119 @@ void AXP2101Component::setup()
 
     // ── Set DC voltages ─────────────────────────────────────────────────
 
-    // DC1: 3300mV (register 0x82, bits 4:0, (mV-1500)/100)
-    Write1Byte(AXP2101_DC1_VOLTAGE, (3300 - 1500) / 100);
-    ESP_LOGCONFIG(TAG, "DC1  : %s   Voltage:%u mV",
-        getRegisterBit(AXP2101_DC_ONOFF_CTRL, 0) ? "+" : "-",
-        (unsigned)((Read8bit(AXP2101_DC1_VOLTAGE) & 0x1F) * 100 + 1500));
+    if (this->model_ == AXP2101Model::AXP2101_M5CORE2) {
 
-    // DC2: 1000mV (register 0x83, bits 6:0, range1: (mV-500)/10)
-    val = (Read8bit(AXP2101_DC2_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
-    Write1Byte(AXP2101_DC2_VOLTAGE, val);
+        // DC1: 3300mV (register 0x82, bits 4:0, (mV-1500)/100)
+        Write1Byte(AXP2101_DC1_VOLTAGE, (3300 - 1500) / 100);
+        ESP_LOGCONFIG(TAG, "DC1  : %s   Voltage:%u mV",
+            getRegisterBit(AXP2101_DC_ONOFF_CTRL, 0) ? "+" : "-",
+            (unsigned)((Read8bit(AXP2101_DC1_VOLTAGE) & 0x1F) * 100 + 1500));
 
-    // DC3: 3300mV (register 0x84, bits 6:0, range3: (mV-1600)/100 + 88)
-    val = (Read8bit(AXP2101_DC3_VOLTAGE) & 0x80) | ((((3300 - 1600) / 100) + 88) & 0x7F);
-    Write1Byte(AXP2101_DC3_VOLTAGE, val);
+        // DC2: 1000mV (register 0x83, bits 6:0, range1: (mV-500)/10)
+        val = (Read8bit(AXP2101_DC2_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
+        Write1Byte(AXP2101_DC2_VOLTAGE, val);
 
-    // DC4: 1000mV (register 0x85, bits 6:0, range1: (mV-500)/10)
-    val = (Read8bit(AXP2101_DC4_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
-    Write1Byte(AXP2101_DC4_VOLTAGE, val);
+        // DC3: 3300mV (register 0x84, bits 6:0, range3: (mV-1600)/100 + 88)
+        val = (Read8bit(AXP2101_DC3_VOLTAGE) & 0x80) | ((((3300 - 1600) / 100) + 88) & 0x7F);
+        Write1Byte(AXP2101_DC3_VOLTAGE, val);
 
-    // DC5: 3300mV (register 0x86, bits 4:0, (mV-1400)/100)
-    val = (Read8bit(AXP2101_DC5_VOLTAGE) & 0xE0) | (((3300 - 1400) / 100) & 0x1F);
-    Write1Byte(AXP2101_DC5_VOLTAGE, val);
+        // DC4: 1000mV (register 0x85, bits 6:0, range1: (mV-500)/10)
+        val = (Read8bit(AXP2101_DC4_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
+        Write1Byte(AXP2101_DC4_VOLTAGE, val);
 
-    // ── Set LDO voltages ────────────────────────────────────────────────
-    setLdoVoltage(AXP2101_ALDO1_VOLTAGE, 3300);
-    setLdoVoltage(AXP2101_ALDO2_VOLTAGE, 3300);
-    // ALDO3 (speaker) - leave as is
-    setLdoVoltage(AXP2101_ALDO4_VOLTAGE, 3300);  // Display power
-    setLdoVoltage(AXP2101_BLDO1_VOLTAGE, 3300);  // LCD backlight
-    setLdoVoltage(AXP2101_BLDO2_VOLTAGE, 3300);
+        // DC5: 3300mV (register 0x86, bits 4:0, (mV-1400)/100)
+        val = (Read8bit(AXP2101_DC5_VOLTAGE) & 0xE0) | (((3300 - 1400) / 100) & 0x1F);
+        Write1Byte(AXP2101_DC5_VOLTAGE, val);
 
-    // CPUSLDO: 1000mV, 50mV steps: (1000-500)/50 = 10
-    val = (Read8bit(AXP2101_CPUSLDO_VOLTAGE) & 0xE0) | (((1000 - 500) / 50) & 0x1F);
-    Write1Byte(AXP2101_CPUSLDO_VOLTAGE, val);
+        // ── Set LDO voltages ────────────────────────────────────────────────
+        setLdoVoltage(AXP2101_ALDO1_VOLTAGE, 3300);
+        setLdoVoltage(AXP2101_ALDO2_VOLTAGE, 3300);
+        // ALDO3 (speaker) - leave as is
+        setLdoVoltage(AXP2101_ALDO4_VOLTAGE, 3300);  // Display power
+        setLdoVoltage(AXP2101_BLDO1_VOLTAGE, 3300);  // LCD backlight
+        setLdoVoltage(AXP2101_BLDO2_VOLTAGE, 3300);
 
-    // ── Enable/disable power rails ──────────────────────────────────────
+        // CPUSLDO: 1000mV, 50mV steps: (1000-500)/50 = 10
+        val = (Read8bit(AXP2101_CPUSLDO_VOLTAGE) & 0xE0) | (((1000 - 500) / 50) & 0x1F);
+        Write1Byte(AXP2101_CPUSLDO_VOLTAGE, val);
 
-    // DC rails (register 0x80)
-    // DC1: leave as-is (don't enable)
-    setRegisterBit(AXP2101_DC_ONOFF_CTRL, 1);  // DC2
-    setRegisterBit(AXP2101_DC_ONOFF_CTRL, 2);  // DC3
-    setRegisterBit(AXP2101_DC_ONOFF_CTRL, 3);  // DC4
-    setRegisterBit(AXP2101_DC_ONOFF_CTRL, 4);  // DC5
+        // ── Enable/disable power rails ──────────────────────────────────────
 
-    // LDO rails (register 0x90)
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO1_BIT, true);
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO2_BIT, true);
-    // ALDO3 (speaker) - leave disabled
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO4_BIT, true);   // Display power
-    // BLDO1 (backlight) - controlled by UpdateBrightness()
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO2_BIT, true);
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_CPUSLDO_BIT, true);
-    // DLDO1 (vibration) - leave disabled
-    // DLDO2 - leave disabled
+        // DC rails (register 0x80)
+        // DC1: leave as-is (don't enable)
+        setRegisterBit(AXP2101_DC_ONOFF_CTRL, 1);  // DC2
+        setRegisterBit(AXP2101_DC_ONOFF_CTRL, 2);  // DC3
+        setRegisterBit(AXP2101_DC_ONOFF_CTRL, 3);  // DC4
+        setRegisterBit(AXP2101_DC_ONOFF_CTRL, 4);  // DC5
 
+        // LDO rails (register 0x90)
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO1_BIT, true);
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO2_BIT, true);
+        // ALDO3 (speaker) - leave disabled
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO4_BIT, true);   // Display power
+        // BLDO1 (backlight) - controlled by UpdateBrightness()
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO2_BIT, true);
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_CPUSLDO_BIT, true);
+        // DLDO1 (vibration) - leave disabled
+        // DLDO2 - leave disabled
+        }
+    else if (this->model_ == AXP2101_WSESP32S3TCHLCD_3_5_B) {
+       // DC1: 3300mV (register 0x82, bits 4:0, (mV-1500)/100) 3V3 line
+        Write1Byte(AXP2101_DC1_VOLTAGE, (3300 - 1500) / 100);
+        ESP_LOGCONFIG(TAG, "DC1  : %s   Voltage:%u mV",
+            getRegisterBit(AXP2101_DC_ONOFF_CTRL, 0) ? "+" : "-",
+            (unsigned)((Read8bit(AXP2101_DC1_VOLTAGE) & 0x1F) * 100 + 1500));
+
+        // NC DC2: 1000mV (register 0x83, bits 6:0, range1: (mV-500)/10)
+        //val = (Read8bit(AXP2101_DC2_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
+        //Write1Byte(AXP2101_DC2_VOLTAGE, val);
+
+        // NC DC3: 3300mV (register 0x84, bits 6:0, range3: (mV-1600)/100 + 88)
+        //val = (Read8bit(AXP2101_DC3_VOLTAGE) & 0x80) | ((((3300 - 1600) / 100) + 88) & 0x7F);
+        //Write1Byte(AXP2101_DC3_VOLTAGE, val);
+
+        // NC DC4: 1000mV (register 0x85, bits 6:0, range1: (mV-500)/10)
+        //val = (Read8bit(AXP2101_DC4_VOLTAGE) & 0x80) | (((1000 - 500) / 10) & 0x7F);
+        //Write1Byte(AXP2101_DC4_VOLTAGE, val);
+
+        // NC DC5: 3300mV (register 0x86, bits 4:0, (mV-1400)/100)
+        //val = (Read8bit(AXP2101_DC5_VOLTAGE) & 0xE0) | (((3300 - 1400) / 100) & 0x1F);
+        //Write1Byte(AXP2101_DC5_VOLTAGE, val);
+
+        // ── Set LDO voltages ────────────────────────────────────────────────
+        setLdoVoltage(AXP2101_ALDO1_VOLTAGE, 3300); //Camera LVCC3V3
+        //setLdoVoltage(AXP2101_ALDO2_VOLTAGE, 3300); //NC
+        //setLdoVoltage(AXP2101_ALDO3_VOLTAGE, 3300); //NC
+        //setLdoVoltage(AXP2101_ALDO4_VOLTAGE, 3300);  // NC
+        setLdoVoltage(AXP2101_BLDO1_VOLTAGE, 1500);  // Camera LVCC1V5
+        setLdoVoltage(AXP2101_BLDO2_VOLTAGE, 2800);  // Camera LVCC2V8
+
+        // NC CPUSLDO: 1000mV, 50mV steps: (1000-500)/50 = 10
+        //val = (Read8bit(AXP2101_CPUSLDO_VOLTAGE) & 0xE0) | (((1000 - 500) / 50) & 0x1F);
+        //Write1Byte(AXP2101_CPUSLDO_VOLTAGE, val);
+
+        // ── Enable/disable power rails ──────────────────────────────────────
+
+        // DC rails (register 0x80)
+        // There is probably a more effcient way than 5 calls but for now this is it.
+        setRegisterBit(AXP2101_DC_ONOFF_CTRL, 0);  // DC1
+        clrRegisterBit(AXP2101_DC_ONOFF_CTRL, 1);  // DC2
+        clrRegisterBit(AXP2101_DC_ONOFF_CTRL, 2);  // DC3
+        clrRegisterBit(AXP2101_DC_ONOFF_CTRL, 3);  // DC4
+        clrRegisterBit(AXP2101_DC_ONOFF_CTRL, 4);  // DC5
+
+        // LDO rails (register 0x90)
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO1_BIT, true);    // Camera LVCC3V3 3.3v
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO2_BIT, false);   // NC
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO3_BIT, false);   // NC
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO4_BIT, false);   // NC
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO1_BIT, true);    // Camera LVCC1V5 1.5v
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO2_BIT, true);    // Camera LVCC2V8 2.8v
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_CPUSLDO_BIT, false); // NC
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_DLDO1_BIT , false);  // NC
+        // DLDO2 - leave disabled
+        //setLdoEnabled(AXP2101_LDO_ONOFF_CTRL1, AXP2101_LDO_DLDO2_BIT , false);
+    }
     // ── Log all rail states ─────────────────────────────────────────────
     ESP_LOGCONFIG(TAG, "DC1  : %s   Voltage:%u mV",
         getRegisterBit(AXP2101_DC_ONOFF_CTRL, 0) ? "+" : "-",
@@ -233,8 +292,10 @@ void AXP2101Component::setup()
     setRegisterBit(AXP2101_ADC_CHANNEL_CTRL, 3);    // System voltage
 
     // ── IRQ pin setup ───────────────────────────────────────────────────
-    pinMode(pmu_irq_pin, INPUT_PULLUP);
-    attachInterrupt(pmu_irq_pin, setFlag, FALLING);
+    //KPR IRQ won't work for the Waveshare board as it goes to a pin on thie I/O expander
+    // and IO Expander doesn't have it's interupt line hooked to a GPIO line it is NC
+    //pinMode(pmu_irq_pin, INPUT_PULLUP);
+    //attachInterrupt(pmu_irq_pin, setFlag, FALLING);
 
     // Disable all interrupts
     Write1Byte(AXP2101_INTEN1, 0x00);
@@ -288,7 +349,9 @@ void AXP2101Component::setup()
 // ── Screen backlight enable/disable ─────────────────────────────────────────
 
 void AXP2101Component::set_lcd_enabled(bool on) {
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO1_BIT, on);
+    if (this->model_ == AXP2101Model::AXP2101_M5CORE2) {
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_BLDO1_BIT, on);
+    }
 }
 
 // ── Charge LED control ──────────────────────────────────────────────────────
@@ -308,7 +371,9 @@ void AXP2101Component::set_blue_led(bool on) {
 // ── Speaker power (ALDO3) ───────────────────────────────────────────────────
 
 void AXP2101Component::set_speaker_enabled(bool on) {
-    setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO3_BIT, on);
+    if (this->model_ == AXP2101Model::AXP2101_M5CORE2) {
+        setLdoEnabled(AXP2101_LDO_ONOFF_CTRL0, AXP2101_LDO_ALDO3_BIT, on);
+    }
 }
 
 // ── Config dump ─────────────────────────────────────────────────────────────
@@ -351,8 +416,9 @@ void AXP2101Component::update() {
         ESP_LOGD(TAG, "Got Battery Charging=%s", vcharging ? "true" : "false");
         this->batterycharging_bsensor_->publish_state(vcharging);
     }
-
-    UpdateBrightness();
+    if (this->model_ == AXP2101Model::AXP2101_M5CORE2) {
+        UpdateBrightness();
+    }
 }
 
 // ── Register I/O ────────────────────────────────────────────────────────────
