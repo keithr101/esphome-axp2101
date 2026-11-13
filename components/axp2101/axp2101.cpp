@@ -394,7 +394,7 @@ void AXP2101Component::update() {
 
     if (this->batterylevel_sensor_ != nullptr) {
         float vbat = GetBatVoltage();
-        ESP_LOGD(TAG, "Got Battery Voltage=%f", vbat);
+        ESP_LOGD(TAG, "Got Battery Voltage=%0.00f", vbat/1000.0f);
         this->batteryvoltage_sensor_->publish_state(vbat / 1000.0f);
 
         float batterylevel;
@@ -404,7 +404,7 @@ void AXP2101Component::update() {
             batterylevel = 100.0f * ((vbat - 3000.0f) / (4100.0f - 3000.0f));
         }
 
-        ESP_LOGD(TAG, "Got Battery Level=%f", batterylevel);
+        ESP_LOGD(TAG, "Got Battery Level=%00.0f", batterylevel);
         if (batterylevel > 100.0f) {
             batterylevel = 100.0f;
         }
