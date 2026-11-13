@@ -404,7 +404,7 @@ void AXP2101Component::update() {
             batterylevel = 100.0f * ((vbat - 3000.0f) / (4100.0f - 3000.0f));
         }
 
-        ESP_LOGD(TAG, "Got Battery Level=%4.1f", batterylevel);
+        ESP_LOGD(TAG, "Got Battery Level=%4.1f%%", batterylevel);
         if (batterylevel > 100.0f) {
             batterylevel = 100.0f;
         }
