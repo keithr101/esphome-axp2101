@@ -428,7 +428,7 @@ void AXP2101Component::update() {
                 sprintf(buf,"AXP2101 IRQ Status REG: %0X, value: %0X",i,val);
                 ESP_LOGD(TAG, buf);
                 if (val)
-                    WriteByte(i,val);  //Reset IRQ status bits
+                    Write1Byte(i,val);  //Reset IRQ status bits
             //}
         }
     }
