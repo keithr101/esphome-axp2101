@@ -419,6 +419,17 @@ void AXP2101Component::update() {
     if (this->model_ == AXP2101Model::AXP2101_M5CORE2) {
         UpdateBrightness();
     }
+    {
+  
+        for (unit8_t i = AXP2101_INTSTS1; i < AXP2101_INTSTS3; i++) {
+            uint8_t val = Read8bit(i);
+            if (val) {
+                char buf[50];
+                sprintf(buf,"AXP2101 IRQ Status REG: %0X, value: %0X",i,val);
+                ESP_LOGD(TAG, buf);
+            }
+        }
+    }
 }
 
 // ── Register I/O ────────────────────────────────────────────────────────────
