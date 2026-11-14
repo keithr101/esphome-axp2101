@@ -421,7 +421,7 @@ void AXP2101Component::update() {
     }
     {
   
-        for (unit8_t i = AXP2101_INTSTS1; i < AXP2101_INTSTS3; i++) {
+        for (uint8_t i = AXP2101_INTSTS1; i < AXP2101_INTSTS3; i++) {
             uint8_t val = Read8bit(i);
             //if (val) {
                 char buf[50];
